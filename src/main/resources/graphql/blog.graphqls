@@ -1,3 +1,5 @@
+scalar LocalDateTime
+
 type Comment {
     id: ID!
 
@@ -7,14 +9,31 @@ type Comment {
 type Post {
     id: ID!
 
+
     title: String!
     body: String!
+    date: LocalDateTime!
     summary(maxWords: Int! = 5): String!
     comments: [Comment!]!
 }
 
-type Query {
+type PostPage {
     posts: [Post!]!
+
+    pageNo: Int!
+    pageSize: Int!
+    hasPrev: Boolean!
+    hasNext: Boolean!
+}
+
+enum PostSortBy { title, date }
+enum SortDirection { ASC, DESC }
+
+type Query {
+    posts(page: Int! = 0,
+        pageSize: Int! = 5,
+        sortBy: PostSortBy! = date,
+        sortDirection: SortDirection! = DESC): PostPage!
     post(postId: ID!): Post
 }
 

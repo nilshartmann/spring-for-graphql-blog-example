@@ -1,11 +1,16 @@
 package nh.example.graphqlblog.graphql;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import nh.example.graphqlblog.domain.IllegalPostDataException;
 import nh.example.graphqlblog.domain.Post;
 import nh.example.graphqlblog.domain.PostRepository;
 import nh.example.graphqlblog.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -23,7 +28,7 @@ import static java.lang.Math.min;
 @Controller
 public class BlogController {
 
-    private static final Logger log = LoggerFactory.getLogger( BlogController.class );
+    private static final Logger log = LoggerFactory.getLogger(BlogController.class);
 
     private final PostRepository postRepository;
     private final BlogService blogService;
@@ -38,9 +43,25 @@ public class BlogController {
         return postRepository.findById(postId);
     }
 
+    record PostPage(List<Post> posts, int pageNo, int pageSize, boolean hasPrev, boolean hasNext) {
+    }
+
+    enum PostSortBy {title, date}
+
+
     @QueryMapping
-    public List<Post> posts() {
-        return postRepository.findAll();
+    public PostPage posts(@Argument @Min(0) int page,
+                          @Argument @Min(0) @Max(10) int pageSize,
+                          @Argument PostSortBy sortBy, @Argument Sort.Direction sortDirection) {
+        var pageRequest = PageRequest.of(page, pageSize)
+            .withSort(sortDirection, sortBy.name());
+
+        var result = postRepository.findAll(pageRequest);
+
+        return new PostPage(result.getContent(),
+            page, pageSize,
+            result.hasPrevious(), result.hasNext()
+        );
     }
 
     @SchemaMapping
@@ -50,11 +71,17 @@ public class BlogController {
         return blogService.buildSummaryWithChatGPT(body, maxWords);
     }
 
-    record AddPostInput(String title, String body) {}
+    record AddPostInput(String title, String body) {
+    }
 
-    interface AddPostResult {}
-    record AddPostSuccess(Post newPost) implements AddPostResult {}
-    record AddPostError(String fieldName, String errorMsg) implements AddPostResult {}
+    interface AddPostResult {
+    }
+
+    record AddPostSuccess(Post newPost) implements AddPostResult {
+    }
+
+    record AddPostError(String fieldName, String errorMsg) implements AddPostResult {
+    }
 
     @MutationMapping
     @PreAuthorize("hasRole('ROLE_PUBLISHER')")

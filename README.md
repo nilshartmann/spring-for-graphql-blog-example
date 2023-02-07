@@ -43,11 +43,22 @@ query {
 **Read multiple blog posts**
 ```graphql
 query {
-  posts{
-    id
-    summary(maxWords: 5)  
-  }
+    posts(sortBy:date, sortDirection: ASC, page: 1, pageSize:3){
+        pageNo
+        pageSize
+
+        hasPrev
+        hasNext
+
+        posts {
+            id
+            title
+            date
+            summary(maxWords: 5)
+        }
+    }
 }
+
 ```
 
 **Add a new post**
