@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
@@ -38,21 +40,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf().disable();
+        http.csrf().disable();
         http.cors();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        // for h2 explorer
         http.headers().frameOptions().sameOrigin();
 
+        // Use http://localhost:9800/login to login if you need a user for mutations
+        //   (You can use susi/susi as username/password)
+        // Use http://localhost:9800/logout to logout again
+        //   (You can run queries without beeing logged in)
+        http.formLogin(form -> form.defaultSuccessUrl("/graphiql", true));
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
 
         http.authorizeHttpRequests(authorizeHttpRequests ->
             authorizeHttpRequests
-                .requestMatchers("/login/**").permitAll()
                 .requestMatchers("/graphql/**").permitAll()
                 .requestMatchers("/graphiql/**").permitAll()
                 .requestMatchers("/favicon.ico").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
         );
 
         return http.build();

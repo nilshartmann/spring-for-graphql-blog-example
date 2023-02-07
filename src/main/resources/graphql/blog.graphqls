@@ -17,3 +17,23 @@ type Query {
     posts: [Post!]!
     post(postId: ID!): Post
 }
+
+type AddPostError  {
+    fieldName: String!
+    errorMsg: String!
+}
+
+type AddPostSuccess {
+    newPost: Post!
+}
+
+union AddPostResult = AddPostError | AddPostSuccess
+
+input AddPostInput {
+    title: String!
+    body: String!
+}
+
+type Mutation {
+    addPost(input: AddPostInput!): AddPostResult
+}

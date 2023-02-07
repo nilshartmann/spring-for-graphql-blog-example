@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User implements UserDetails {
     @Id
     @GeneratedValue
@@ -22,12 +22,15 @@ public class User implements UserDetails {
     private String password;
     private boolean enabled;
     private String fullname;
+    private String role;
 
-    protected User() {}
+    protected User() {
+    }
 
-    public User(String username, String password, String fullname) {
+    public User(String username, String password, String role, String fullname) {
         this.username = username;
         this.password = password;
+        this.role = role;
         this.fullname = fullname;
         this.enabled = true;
     }
@@ -54,7 +57,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(() -> role);
     }
 
     @Override

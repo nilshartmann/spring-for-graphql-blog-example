@@ -1,9 +1,15 @@
 package nh.example.graphqlblog.graphql;
 
+import nh.example.graphqlblog.domain.IllegalPostDataException;
+import nh.example.graphqlblog.domain.Post;
+import nh.example.graphqlblog.domain.PostRepository;
+import nh.example.graphqlblog.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -16,6 +22,13 @@ import static java.lang.Math.min;
 public class BlogService {
 
     private static final Logger log = LoggerFactory.getLogger( BlogService.class );
+
+    private final PostRepository postRepository;
+
+    public BlogService(PostRepository postRepository) {
+        this.postRepository = postRepository;
+    }
+
 
     // Demo: asynchrone Verarbeitung in Handler-Methoden
     @Async("chatGPTExecutor")
@@ -36,6 +49,24 @@ public class BlogService {
             .collect(Collectors.joining(" "));
 
         return CompletableFuture.completedFuture(words);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Post addPost(User user, String title, String body) throws IllegalPostDataException {
+
+        if (title.length() < 5) {
+            throw new IllegalPostDataException("title", "Length should be at least five chars");
+        }
+
+        if (body.length() < 10) {
+            throw new IllegalPostDataException("body", "Length should be at least ten chars");
+        }
+
+        var newPost = new Post(user, title, body);
+
+        postRepository.save(newPost);
+
+        return newPost;
     }
 
 }

@@ -14,6 +14,7 @@ DROP TABLE users IF EXISTS CASCADE;
 CREATE TABLE users (
     id       BIGINT               NOT NULL,
     username VARCHAR(20)          NOT NULL,
+    ROLE     VARCHAR(256)         NOT NULL,
     password VARCHAR(20)          NOT NULL,
     enabled  BOOLEAN DEFAULT TRUE NOT NULL,
     fullname VARCHAR(256)         NOT NULL,
