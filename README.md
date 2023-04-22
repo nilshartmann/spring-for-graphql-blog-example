@@ -13,7 +13,7 @@ You can run the application using Gradle or your favourite IDE:
 
 ```
 
-Or import the project into your IDE and run the main class `nh.example.graphqlblog.SpringGraphqlJavaMagazinApplication`
+Or import the project into your IDE and run the main class `nh.example.graphqlblog.SpringGraphqlBlogApplication`
 
 The server runs on `http://localhost:9800`
 
